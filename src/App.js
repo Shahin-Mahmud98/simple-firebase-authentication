@@ -1,23 +1,68 @@
-import logo from './logo.svg';
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut } from 'firebase/auth';
+import { useState } from 'react';
+
 import './App.css';
+import initializeAuthentication from './Firebase/firebase.initialize';
+
+initializeAuthentication();
+
+const googleProvider = new GoogleAuthProvider();
+const gitHubProvider = new GithubAuthProvider();
 
 function App() {
+  const auth = getAuth();
+  const [user, setUser] = useState({});
+  const handleGoogleSignIn = () => {
+
+    signInWithPopup(auth, googleProvider)
+      .then(result => {
+        const { displayName, email, photoURL } = result.user;
+        const loggedInUser = {
+          name: displayName,
+          email: email,
+          photo: photoURL,
+        };
+        setUser(loggedInUser);
+      })
+      .catch(error => {
+        console.log(error.messege);
+      })
+  }
+
+  const handleGithubSignIn = () => {
+    signInWithPopup(auth, gitHubProvider)
+      .then(result => {
+        const { displayName, email, photoURL } = result.user;
+        const loggedInUser = {
+          name: displayName,
+          email: email,
+          photo: photoURL,
+        };
+        setUser(loggedInUser);
+      })
+  }
+  const handleWithSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        setUser({});
+      })
+  }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {!user.name ?
+        <div>
+          <button onClick={handleGoogleSignIn}>Google Sign In</button>
+          <button onClick={handleGithubSignIn}>Github Sign In</button>
+        </div> :
+        <button onClick={handleWithSignOut}>Sign Out</button>}
+      <br />
+      {
+        user.photo && <div>
+          <h2>Welcome {user.name}</h2>
+          <p>I know your Email Address:{user.email}</p>
+          <img src={user.photo} alt="" />
+        </div>
+      }
     </div>
   );
 }
